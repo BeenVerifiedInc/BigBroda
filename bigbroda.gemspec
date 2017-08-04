@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rails", ">= 3.0.0"
 
-  spec.add_runtime_dependency("google-api-client")
+  spec.add_runtime_dependency "google-api-client", "~> 0.8.0"
 
   spec.add_dependency "hash-deep-merge"
   spec.add_dependency "activesupport"
