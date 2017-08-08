@@ -1,4 +1,5 @@
-
+require 'ostruct'
+require_relative 'active_record_value_factory'
 
 module ActiveRecord
 
@@ -60,7 +61,7 @@ module ActiveRecord
         :integer     => { :name => "INTEGER", :default=> nil },
         :float       => { :name => "FLOAT", :default=> 0.0 },
         :datetime    => { :name => "TIMESTAMP" },
-        :timestamp    => { name: "TIMESTAMP" },
+        :timestamp   => { :name => "TIMESTAMP" },
         :date        => { :name => "TIMESTAMP" },
         :record      => { :name => "RECORD" },
         :boolean     => { :name => "BOOLEAN" }
@@ -154,12 +155,12 @@ module ActiveRecord
         @prepared_statements = false
         #if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
         #  @prepared_statements = true
-        #  @visitor = Arel::Visitors::SQLite.new self
+         @visitor = Arel::Visitors::SQLite.new self
         #else
         #use the sql without prepraded statements, as I know BQ doesn't support them.
         @type_map = Type::HashLookupTypeMap.new
         initialize_type_map(type_map)
-        @visitor = unprepared_visitor unless ActiveRecord::VERSION::MINOR >= 2
+        # @visitor = unprepared_visitor unless ActiveRecord::VERSION::MINOR >= 2
       end
 
       def adapter_name #:nodoc:
@@ -285,7 +286,9 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      def _quote(value, column = nil)
+      def _quote(*args)
+        value  = args[0]
+        column = args[1]
         if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
           s = column.class.string_to_binary(value).unpack("H*")[0]
           "x'#{s}'"
@@ -359,14 +362,20 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [])
-        binding.pry
+        # binding.pry
         log(sql, name, binds) do
 
           # Don't cache statements if they are not prepared
           #if without_prepared_statement?(binds)
-            result = BigBroda::Jobs.query(@config[:project], {"query"=> sql })
-            cols    = result["schema"]["fields"].map{|o| o["name"] }
-            records = result["totalRows"].to_i.zero? ? [] : result["rows"].map{|o| o["f"].map{|k,v| k["v"]} }
+            result  = BigBroda::Jobs.query(@config[:project], {"query" => sql})
+            cols    = result["schema"]["fields"].map { |o| o["name"] }
+            records = if result["totalRows"].to_i.zero?
+              []
+            else
+              result["rows"].map do |r|
+                r["f"].map { |k, v| k["v"] }
+              end
+            end
             stmt = records
           #else
             #binding.pry
@@ -429,13 +438,17 @@ module ActiveRecord
         table_name && tables(nil, table_name).any?
       end
 
+      def schema(table_name)
+        BigBroda::Table.get(@config[:project], @config[:database], table_name)
+      end
+
       # Returns an array of +SQLite3Column+ objects for the table specified by +table_name+.
       def columns(table_name) #:nodoc:
-        schema = BigBroda::Table.get(@config[:project], @config[:database], table_name)
-        schema["schema"]["fields"].map do |field|
+        schema(table_name)["schema"]["fields"].map do |field|
           mode = field['mode'].present? && field['mode'] == "REQUIRED" ? false : true
           #column expects (name, default, sql_type = nil, null = true)
-          BigqueryColumn.new(field['name'], nil, field['type'], mode )
+          type = ActiveRecordValueFactory.new_from_string(field['type'])
+          BigqueryColumn.new(field['name'], nil, type, mode)
         end
       end
 
@@ -581,7 +594,7 @@ module ActiveRecord
 
         def initialize_type_map(m)
           super
-          puts "INITILIZLIE TYPES MAP"
+          # puts "INITILIZLIE TYPES MAP"
           m.register_type(/binary/i, BQBinary.new)
           register_class_with_limit m, %r(char)i, BQString
         end
