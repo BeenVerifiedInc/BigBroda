@@ -8,6 +8,7 @@ module BigBroda
     #query
     #Runs a BigQuery SQL query synchronously and returns query results if the query completes within a specified timeout.
     def self.query(project_id, body={})
+      body.merge!('useLegacySql' => false)
       res = BigBroda::Auth.client.execute(
         :api_method=> BigBroda::Auth.api.jobs.query,
         :body_object=> body,

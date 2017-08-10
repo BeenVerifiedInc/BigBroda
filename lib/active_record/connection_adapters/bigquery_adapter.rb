@@ -367,8 +367,12 @@ module ActiveRecord
   ActiveRecord::Base.send :include, LoadOperations
 end
 
+config_path = File.join(Rails.root, 'config', 'initializers', 'bigquery.rb')
+require(config_path) if File.exists?(config_path)
 
-if ActiveRecord::VERSION::MAJOR == 4
+if BigBroda::Config.adapter_version.present?
+  require File.join(File.dirname(__FILE__), BigBroda::Config.adapter_version.to_s)
+elsif ActiveRecord::VERSION::MAJOR == 4
   case ActiveRecord::VERSION::MINOR
   when 0
     require File.join(File.dirname(__FILE__), 'rails_41.rb')

@@ -1,5 +1,6 @@
 require 'ostruct'
 require_relative 'active_record_value_factory'
+require_relative '../../arel/visitors/bigquery'
 
 module ActiveRecord
 
@@ -155,7 +156,7 @@ module ActiveRecord
         @prepared_statements = false
         #if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
         #  @prepared_statements = true
-         @visitor = Arel::Visitors::SQLite.new self
+         @visitor = Arel::Visitors::Bigquery.new self
         #else
         #use the sql without prepraded statements, as I know BQ doesn't support them.
         @type_map = Type::HashLookupTypeMap.new
