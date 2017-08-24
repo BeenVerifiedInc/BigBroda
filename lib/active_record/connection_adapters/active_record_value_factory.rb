@@ -9,6 +9,8 @@ class ActiveRecordValueFactory
       ActiveRecord::Type::String.new
     when 'FLOAT'
       ActiveRecord::Type::Float.new
+    when 'DATE'
+      ActiveRecord::Type::Date.new
     when 'TIMESTAMP'
       # ActiveRecord::Type::DateTime.new
       ActiveRecordTypeBqDateTime.new
