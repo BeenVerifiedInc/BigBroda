@@ -9,7 +9,8 @@ module ActiveRecord
       end
 
       def quote_table_name(name)
-        "#{@config[:database]}.#{name}"
+        # "#{@config[:database]}.#{name}"
+        name
       end
 
     end

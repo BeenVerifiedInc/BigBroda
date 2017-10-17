@@ -15,7 +15,10 @@ module BigBroda
       )
     end
 
-    def self.get(project_id, dataset_id, table_id)
+    def self.get(project_id, config_database, table_name)
+      parts      = table_name.split('.')
+      dataset_id = parts.first
+      table_id   = parts.last
       res = BigBroda::Auth.client.execute(
         :api_method=> BigBroda::Auth.api.tables.get,
         :parameters=> {"projectId"=> project_id, "datasetId"=> dataset_id, "tableId"=> table_id  }
