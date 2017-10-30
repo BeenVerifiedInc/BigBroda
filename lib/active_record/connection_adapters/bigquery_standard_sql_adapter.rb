@@ -9,8 +9,7 @@ module ActiveRecord
       end
 
       def quote_table_name(name)
-        # "#{@config[:database]}.#{name}"
-        name
+        name.split('.').map { |s| "`#{s}`" }.join('.')
       end
 
     end

@@ -14,9 +14,10 @@ class ActiveRecordValueFactory
     when 'TIMESTAMP'
       # ActiveRecord::Type::DateTime.new
       ActiveRecordTypeBqDateTime.new
-    # when 'RECORD'
     when 'BOOLEAN'
       ActiveRecord::Type::Boolean.new
+    when 'RECORD'
+      ActiveRecord::Type::BigBroda::Record.new
     else
       raise "unknown column type #{string}"
     end

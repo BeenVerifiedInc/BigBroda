@@ -1,6 +1,7 @@
 require 'ostruct'
 require_relative 'active_record_value_factory'
 require_relative '../../arel/visitors/bigquery'
+require_relative 'type/record'
 
 module ActiveRecord
 
@@ -363,26 +364,17 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [])
-        # binding.pry
         log(sql, name, binds) do
-
-          # Don't cache statements if they are not prepared
-          #if without_prepared_statement?(binds)
-            result  = BigBroda::Jobs.query(@config[:project], {"query" => sql})
-            cols    = result["schema"]["fields"].map { |o| o["name"] }
-            records = if result["totalRows"].to_i.zero?
-              []
-            else
-              result["rows"].map do |r|
-                r["f"].map { |k, v| k["v"] }
-              end
+          result  = BigBroda::Jobs.query(@config[:project], {"query" => sql})
+          cols    = result["schema"]["fields"].map { |o| o["name"] }
+          records = if result["totalRows"].to_i.zero?
+            []
+          else
+            result["rows"].map do |r|
+              r["f"].map { |k, v| k["v"] }
             end
-            stmt = records
-          #else
-            #binding.pry
-            #BQ does not support prepared statements, yiak!
-          #end
-
+          end
+          stmt = records
           ActiveRecord::Result.new(cols, stmt)
         end
       end
