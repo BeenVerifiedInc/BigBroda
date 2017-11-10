@@ -10,18 +10,10 @@ module Arel
         collector << ')'
       end
 
-      # # TODO: implement this. 
-      # def visit_Arel_Nodes_DoesNotMatch o, collector
-      #   collector = visit o.left, collector
-      #   collector << " NOT LIKE "
-      #   collector = visit o.right, collector
-      #   if o.escape
-      #     collector << ' ESCAPE '
-      #     visit o.escape, collector
-      #   else
-      #     collector
-      #   end
-      # end
+      def visit_Arel_Nodes_DoesNotMatch o, collector
+        collector = visit_Arel_Nodes_Matches o, collector
+        collector << " IS FALSE"
+      end
 
       def visit_Arel_Attributes_Attribute o, collector
         join_name = (o.relation.table_alias || o.relation.name).split('.').last
