@@ -365,7 +365,21 @@ module ActiveRecord
 
       def exec_query(sql, name = nil, binds = [])
         log(sql, name, binds) do
-          result  = BigBroda::Jobs.query(@config[:project], {"query" => sql})
+          project_id   = @config[:project]
+          result       = BigBroda::Jobs.query(project_id, {"query" => sql})
+          job_complete = result['jobComplete']
+
+          unless job_complete
+            job_id = result['jobReference']['jobId']
+            until job_complete
+              # I don't wanna hang things indefinitely. 5 minutes, seems good.
+              tries ||= 0; raise "query too long" if tries > 30; tries += 1
+              sleep 10
+              result = BigBroda::Jobs.getQueryResults(project_id, job_id)
+              job_complete = result['jobComplete']
+            end
+          end
+
           cols    = result["schema"]["fields"].map { |o| o["name"] }
           records = if result["totalRows"].to_i.zero?
             []
