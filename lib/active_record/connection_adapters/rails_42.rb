@@ -363,9 +363,23 @@ module ActiveRecord
         end
       end
 
+      def project_id
+        @config[:project]
+      end
+
+      # Some hackery for a couple cases in which I'm getting back an array,
+      # which looks like [{'v' => 1}, {'v' => 2}...]
+      def remove_v_keys(datum)
+        v = datum['v']
+        if v.is_a?(Array) && v.first.is_a?(Hash) && v.first.keys == ['v']
+          v.map { |_v| remove_v_keys(_v) }
+        else
+          v
+        end
+      end
+
       def exec_query(sql, name = nil, binds = [])
         log(sql, name, binds) do
-          project_id   = @config[:project]
           result       = BigBroda::Jobs.query(project_id, {"query" => sql})
           job_complete = result['jobComplete']
 
@@ -385,7 +399,7 @@ module ActiveRecord
             []
           else
             result["rows"].map do |r|
-              r["f"].map { |k, v| k["v"] }
+              r["f"].map { |v| remove_v_keys(v) }
             end
           end
           stmt = records
