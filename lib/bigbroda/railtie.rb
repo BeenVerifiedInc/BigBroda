@@ -12,7 +12,7 @@ module BigBroda
 
     config.after_initialize do
       #Google::APIClient.logger = Rails.logger
-      Google::APIClient.logger = Logger.new("#{Rails.root}/log/bigquery-cli.log")
+      # Google::APIClient.logger = Logger.new("#{Rails.root}/log/bigquery-cli.log")
       #Logger.new(STDOUT)
     end
 
@@ -36,4 +36,3 @@ module BigBroda
   end
 
 end
-
