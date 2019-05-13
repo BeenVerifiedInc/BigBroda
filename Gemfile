@@ -5,6 +5,7 @@ gemspec
 
 gem "certified"
 gem "debugger", platform: :ruby_19
+gem 'google-api-client'
 gem "pry"
 gem 'pry-remote'
 gem 'pry-nav'
@@ -16,4 +17,3 @@ group :test do
   gem 'vcr'
   gem 'webmock', '1.16.0', require: false
 end
-
